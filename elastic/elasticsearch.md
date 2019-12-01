@@ -4,7 +4,7 @@
     - B+树或哈希拉链法实现，以满足查询需要
   - 倒排列表 Posting List
     - 文档ID
-    - 词频TF：用于相关性算分
+    - 词频TF(Term frequencies)：用于相关性算分
     - 位置Position：用于语句搜索
     - 偏移量Offset：用于高亮显示
 - 集群
@@ -59,7 +59,78 @@
     - _all:整合所有字段内容，默认禁用
   - Index
     - mapping
-      - type
+      - type 7.0后一一对应
+      - 定义索引中的字段名称和数据类型
+      - 定义倒排索引配置
+      - dynamic mapping
+        - 如果未定义mapping直接写入文档时，es自动创建mapping的机制
+        - 字段类型推断
+          - reindex 修改字段类型
+        - dynamic 参数可限制mapping范围，在修改文档字段时，可控制mapping是否动态调整
+          - |dynamic参数|true|false|strict|
+            |---|---|---|---|
+            |文档可索引|YES|YES|NO|
+            |字段可索引|YES|NO|NO|
+            |Mapping可更新|YES|NO|NO|
+          ```
+          PUT {index}/_mapping
+          {
+              "dynamic":false
+          }
+          ```
+        - Exact Values vs. Full Text （精确值和全文本）
+          - 精确值类型使用 keyword，不进行分词
+          - 全文本类型使用 text，进行分词
+    - analysis
+    ```
+    PUT {index}
+    {
+        "settings":{
+            "analysis":{
+                "analyzer":{
+                    "{analyzer_name}":{
+                        "type":"english",
+                        "stem_exclusion":["organization"],
+                        "stopwords":["a","an","and"]    
+                    }
+                }
+            }
+        }
+    }
+    PUT {index}
+    {
+        "settings":{
+            "analysis":{
+                "analyzer":{
+                    "{analyzer_name}":{
+                        "type":"custom",
+                        "char_filter":["{char_filter_name}"],
+                        "tokenizer":"{tokenizer_name}",
+                        "filter":["lowercase","{filter_name}"]
+                    }
+                },
+                "tokenizer":{
+                    "{tokenizer_name}":{
+                        "type":"pattern",
+                        "pattern":"[.,!?]",
+                    }
+                },
+                "char_filter":{
+                    "{char_filter_name}":{
+                        "type":"mapping",
+                        "mappings":["_ => -"]
+                    }
+                },
+                "filter":{
+                    "{filter_name}":{
+                        "type":"stop",
+                        "stopwords":"_a"
+                    }
+                }
+            }
+        }
+    }
+    ```
     - setting
       - shard
 - 基本操作
@@ -90,11 +161,16 @@
     - 组成
       - Term Dictionary：倒排索引的分词词典
       - Posting List：记录分词所在的偏移量
+        - index_options 参数可规定倒排列表记录的内容
+          - docs:doc id
+          - freqs:doc id,term frequencies
+          - positions:doc id,,term frequencies,term position
+          - offsets:doc id,,term frequencies,term position,character offset
   - 搜索引擎查询流程
     - 查询倒排索引单词所在的具体文档id
     - 拿到文档id查询正排索引文档的具体内容
 - 分词
-  - 分词器
+  - 分词器 analysis
     - Character Filters：对原始文本进行处理，如去除特殊标记符
       - HTML Strip
       - Mapping 字符替换
@@ -177,10 +253,92 @@
   
   ```
 - 查询
+  - URI Search
+    ```
+    GET {index}/_search?q={keyword}&df={field}&sort=year:desc&from=0&size=10&timeout=1s
+    {
+        "profile":true
+    }
+    ```
+    |参数|说明|实例|
+    |---|---|---|
+    |q|指定查询语句|?q={keyword}|
+    |df|默认字段，不指定会对所有字段进行查询|&df={field}|
+    |sort|排序|&sort=year:desc|
+    |from/size|分页|&from=0&size=10|
+    |profile|查询过程分析|"profile":true|
   - term
     - 代表完全匹配，不进行分词器分析
   - match
     - 查询词会被分词
-  
+    ```
+    POST {index}/_search
+    {
+        "query":{
+            "match":{
+                "{field}":{
+                    "query":"{keyword}",
+                    "operator":"and"
+                }
+            }
+        }
+    }
+    ```
+  - match_phrase
+    - 查询词顺序固定
+    - slop 单词间最多分隔词数
+    ```
+    POST {index}/_search
+    {
+        "query":{
+            "match_phrase":{
+                "{field}":{
+                    "query":"{keyword}"
+                    "slop":1
+                }
+            }
+        }
+    }
+    ```
+    - query_string
+      - query参数支持运算符 AND OR NOT 括号()
+    ```
+    POST {index}/_search
+    {
+        "query":{
+            "query_string":{
+                "default_field":"{field}",
+                "query":"{keyword}"
+            }
+        }
+    }
+    POST {index}/_search
+    {
+        "query":{
+            "query_string":{
+                "fields":["{field1}","{field2}"],
+                "query":"{keyword}"
+            }
+        }
+    }
+    ```
+    - simple_query_string
+      - query参数不支持运算符，使用default_operator参数代替
+    ```
+    POST {index}/_search
+    {
+        "query":{
+            "simple_query_string":{
+                "fields":["{field1}","{field2}"],
+                "query":"{keyword}",
+                "default_operator":"AND"
+            }
+        }
+    }
+    ```
+- 相关性算分的指标 Information Retrieval
+  - Precision 查准率
+  - Recall 查全率
+  - Ranking 相关度排序
   
   
