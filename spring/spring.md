@@ -1,0 +1,26 @@
+- Spring BeanFactory 与 FactoryBean 的区别
+  - BeanFactory 和 FactoryBean 都是Spring Beans模块下的接口
+  - BeanFactory是spring简单工厂模式的接口类，spring IOC特性核心类，提供从工厂类中获取bean的各种方法，是所有bean的容器。
+  - FactoryBean仍然是一个bean，但不同于普通bean，它的实现类最终也需要注册到BeanFactory中。
+  - 实现了FactoryBean接口的类，在注册到spring BeanFactory后，并不像其它类注册后暴露的是自己，它暴露的是FactoryBean中getObject方法的返回值。
+  - 总结
+    - BeanFactory是IOC容器，FactoryBean是简化复杂对象的创建工厂。
+- IOC
+  - Bean生命周期
+    - Singleton：容器启动时创建，容器关闭时销毁
+    - Prototype：仅在使用时创建，使用完毕后等待GC销毁
+- AOP
+  - JDK动态代理（java.lang.reflect.Proxy）
+    - 反射生成动态代理类
+  - cglib
+    - 编译时字节码动态织入
+
+- Transaction
+  - 传播类型（7种）
+    - Required 没有事务创建事务，有事务则合并事务
+    - Supports 没有事务以非事务方式执行，有事务则在该事务中
+  - 隔离类型
+    - Serializable 串行
+    - Repeatable Read 可重复读
+    - Read Committed 提交后读
+    - Read Uncommitted 不提交读
