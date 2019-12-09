@@ -408,7 +408,7 @@
   }
   ```
   - Metric Aggregation(count,avg,max,min,sum)
-  ```
+   ```
   GET {index}/_search
   {
       "size":0,
@@ -416,28 +416,28 @@
           "{agg_name}":{
               "terms":{
                   "field":"{field_name}"
-              }
-          }
-      },
-      "aggs":{
-          "{agg_avg}":{
-              "avg":{
-                  "field":"{field_name}"
-              }
-          }
-      },
-      "aggs":{
-          "{agg_max}":{
-              "max":{
-                  "field":"{field_name}"
-              }
-          }
-      },
-      "aggs":{
-          "{agg_min}":{
-              "min":{
-                  "field":"{field_name}"
-              }
+              },
+             "aggs":{
+                 "{agg_avg}":{
+                     "avg":{
+                         "field":"{field_name}"
+                     }
+                 }
+             },
+             "aggs":{
+                 "{agg_max}":{
+                     "max":{
+                         "field":"{field_name}"
+                     }
+                 }
+             },
+             "aggs":{
+                 "{agg_min}":{
+                     "min":{
+                         "field":"{field_name}"
+                     }
+                 }
+             }
           }
       }
   }
@@ -449,5 +449,26 @@
   - Precision 查准率
   - Recall 查全率
   - Ranking 相关度排序
-  
-  
+  - 相关性算分计算
+    - 词频 TF(Term Frequency)
+      - TF=检索词出现的次数/分档的总字数
+    - 逆文档频率 IDF(Inverse Document Frequency)
+      - IDF=log(全部文档数/检索词出现过的文档数)
+    - TF-IDF 加权求和
+      - TF-IDF=TF(keyword)*IDF(keyword)
+    - BM25
+      - 对TF-IDF进行了优化，算分不会趋于无穷增长
+    - explain 参数可以查看算分的详情
+    - profile 参数可以查看检索类型详情
+    ```
+    GET /test_user/_search
+    {
+      "profile": "true",
+      "explain": true, 
+      "query":{
+        "match":{
+          "name":"ZurkBob"
+        }
+      }
+    }
+    ```
