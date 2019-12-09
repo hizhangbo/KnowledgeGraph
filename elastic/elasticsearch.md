@@ -252,6 +252,62 @@
   ```
   
   ```
+- Index Templates
+  - 查看模板
+  ```
+  GET /_template/{template_name}
+  ```
+  - 创建索引模板
+    - 模板优先级从低到高
+      - 默认settings和mappings
+      - order参数低
+      - order参数高
+      - 创建索引时指定
+  ```
+  PUT _template/{template_name}
+  {
+      "index_patterns":["*"],
+      "order":0,
+      "version":1,
+      "settings":{
+          "number_of_shards":1,
+          "number_of_replicas":1
+      }
+  }
+  PUT _template/{template_name}
+  {
+      "index_patterns":["test*"],
+      "order":1,
+      "version":1,
+      "settings":{
+          "number_of_shards":1,
+          "number_of_replicas":2
+      },
+      "mappings":{
+          "date_detection":false,
+          "numeric_detection":true
+      }
+  }
+  ```
+- Dynamic Template
+  - 自定义动态类型推断
+  ```
+  PUT {index_name}
+  {
+      "mappings":{
+          "dynamic_templates":[
+              "{dynamic_tmpl_name}":{
+                  "path_match":"name.*",
+                  "path_unmatch":"*.middle",
+                  "mapping":{
+                      "type":"text",
+                      "copy_to":"full_name"
+                  }
+              }
+          ]
+      }
+  }
+  ```
 - 查询
   - URI Search
     ```
@@ -336,6 +392,59 @@
         }
     }
     ```
+- Aggregation 聚合
+  - Bucket Aggregation(group by)
+  ```
+  GET {index}/_search
+  {
+      "size":0,
+      "aggs":{
+          "{agg_name}":{
+              "terms":{
+                  "field":"{field_name}"
+              }
+          }
+      }
+  }
+  ```
+  - Metric Aggregation(count,avg,max,min,sum)
+  ```
+  GET {index}/_search
+  {
+      "size":0,
+      "aggs":{
+          "{agg_name}":{
+              "terms":{
+                  "field":"{field_name}"
+              }
+          }
+      },
+      "aggs":{
+          "{agg_avg}":{
+              "avg":{
+                  "field":"{field_name}"
+              }
+          }
+      },
+      "aggs":{
+          "{agg_max}":{
+              "max":{
+                  "field":"{field_name}"
+              }
+          }
+      },
+      "aggs":{
+          "{agg_min}":{
+              "min":{
+                  "field":"{field_name}"
+              }
+          }
+      }
+  }
+  ```
+  - Pipeline Aggregation
+  - Matrix Aggregation
+    
 - 相关性算分的指标 Information Retrieval
   - Precision 查准率
   - Recall 查全率
