@@ -49,6 +49,30 @@
       - 主分片正常分片，副本分片未能正常分配
     - Red
       - 主分片未能正常分配
+- 分片生命周期
+  - 单个shard分片即Lucene Index
+  - 单个倒排索引文件成为Segment，不可变更
+  - 多个Segments汇总成为Lucene Index，即ES Shard
+  - Lucene中记录所有Segments的信息的文件Commit Point
+  - 删除文档信息保存在.del文件中，检索时过滤，而非真正删除
+  - 文档写入流程
+    - Refresh
+      - Index Document 从Index Buffer中写入Segment过程称为Refresh
+      - 默认频率1秒一次
+      - 如果Index Buffer已满，也会触发Refresh，默认是JVM的10%
+    - Transaction Log
+      - 为了保证数据不丢失，文档在进入Index Buffer的同时，写入Transaction Log落盘
+      - 每个分片有一个Transaction Log
+      - Refresh操作会清空Index Buffer，Transaction Log不会清空
+    - Flush
+      - 调用Refresh，清空Index Buffer
+      - 调用fsync，将缓存中的Segment落盘
+      - 清空Transaction Log
+      - 默认30分钟调用一次
+      - Transaction Log已满也会触发Flush，默认512MB
+    - Merge
+      - 合并Flush操作产生的多个Segments
+      - 删除.del中的文档
 - 元素
   - Document
     - _index:文档所在的索引名
@@ -392,6 +416,20 @@
         }
     }
     ```
+- Query-then-Fetch
+  - 分布式搜索运行机制
+  - Query
+    - 获取所有分片（非同一主备分片）上的结果，每个分片的From到From+Size的文档
+  - Fetch
+    - 将Query中的结果进行合并，重新排序，然后再取From到From+Size的文档的ID
+    - 以multi get请求的方式到相应的分片获取详细的文档数据
+  - 引发的问题
+    - 每个分片需要查询文档个数=from+size
+    - 最终协调节点需要处理文档个数=number_of_shards*(from+size)
+    - 造成深度分页的难题，默认10k个文档
+      - search after替换from操作
+      - scroll api 不是及时更新的，可能脏读
+    - 导致相关性算分在多个不同分片上结果不准确
 - Aggregation 聚合
   - Bucket Aggregation(group by)
   ```
@@ -443,6 +481,15 @@
   }
   ```
   - Pipeline Aggregation
+    - 对聚合结果进行二次聚合
+    - 常见参数
+      - min_bucket
+      - max_bucket
+      - avg_bucket
+      - derivative # 环比增长，增量Δx
+      - cumulative_sum # 累计求和
+      - stats_bucket
+      - **buckets_path** # 配置多重聚合的层级
   - Matrix Aggregation
     
 - 相关性算分的指标 Information Retrieval
