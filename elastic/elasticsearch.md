@@ -491,7 +491,36 @@
       - stats_bucket
       - **buckets_path** # 配置多重聚合的层级
   - Matrix Aggregation
-    
+- 更改索引
+  - _update_by_query：在现有索引上重建
+  ```
+  POST blogs/_update_by_query
+  ```
+  - reindex：新建并迁移目标索引
+  ```
+  POST _reindex
+  {
+    "source": {
+      "index": "blogs"
+    },
+    "dest": {
+      "index": "blogs_new"
+    }
+  }
+  ```
+- Index Alias
+  - 为索引定义别名，数据迭代零停机
+  ```
+  POST _aliases
+  {
+      "actions":[
+          "add":{
+              "index":"{index_name}",
+              "alias":"{alias_name}"
+          }
+      ]
+  }
+  ```
 - 相关性算分的指标 Information Retrieval
   - Precision 查准率
   - Recall 查全率
