@@ -521,6 +521,54 @@
       ]
   }
   ```
+- 关闭Dynamic Indexes
+  - 防止用户没有创建mapping的情况下写入数据，导致索引不合理
+  ```
+  PUT _cluster/settings
+  {
+      "persistent":{
+          "action.auto_create_index":false
+      }
+  }
+  
+  PUT _cluster/settings
+  {
+      "persistent":{
+          "action.auto_create_index":"logstash-*,.kibana*"
+      }
+  }
+  ```
+- 索引优化
+  - refresh_interval:"30s"  # 控制refresh操作的频率，减少segment文件，减少merge IO，但查询会产生延迟
+  - total_shards_per_node:"3"  # 控制单节点分片数量，避免数据倾斜
+  - sync_interval:"30s"  # 控制translog写入频率，减少fsync IO开销，但可能导致数据丢失
+  - dynamic:false  # 避免不必要的字段索引
+  ```
+  PUT myindex
+  {
+      "settings":{
+          "index":{
+              "refresh_interval":"30s",
+              "number_of_shards":"2"
+          },
+          "routing":{
+              "allocation":{
+                  "total_shards_per_node":"3"
+              }
+          },
+          "translog":{
+              "sync_interval":"30s",
+              "durability":"async"
+          },
+          "number_of_replicas":0
+      },
+      "mappings":{
+          "dynamic":false,
+          "properties":{}
+      }
+  }
+  ```
+  
 - 相关性算分的指标 Information Retrieval
   - Precision 查准率
   - Recall 查全率
