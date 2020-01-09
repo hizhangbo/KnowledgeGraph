@@ -34,4 +34,24 @@
       |固定长度|FixedLengthFrameDecoder||
       |分隔符|DelimiterBasedFrameDecoder||
       |固定长度标记消息长度|LengthFieldBasedFrameDecoder|LengthFieldPrepender|
-  
+
+- 常用元素
+  - EventLoopGroup # 事件循环组
+    - TerminationListener
+    - EventExecutor
+      - EventLoop
+        - SingleThreadEventLoop
+          - NioEventLoop
+          - ThreadPerTaskExecutor
+  - ServerBootstrap # 服务器引导启动与初始化
+    - ChannelFactory
+      - NioServerSocketChannel
+      - SocketChannel
+  - ChannelPipeline
+    - ChannelHandler
+      - ChannelInboundHandlerAdapter
+      - ChannelOutboundHandlerAdapter
+  - 编码
+    - Protobuf
+      - 优势
+        - 比序列化方式效率高
