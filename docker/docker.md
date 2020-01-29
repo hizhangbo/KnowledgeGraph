@@ -153,6 +153,15 @@ docker-compose up --scale spring-cloud-server=2
 ```shell
 # https://www.docker-cn.com/registry-mirror
 docker pull registry.docker-cn.com/library/
+
+sudo mkdir -p /etc/docker
+sudo tee /etc/docker/daemon.json <<-'EOF'
+{
+  "registry-mirrors": ["https://pc8jr851.mirror.aliyuncs.com"]
+}
+EOF
+sudo systemctl daemon-reload
+sudo systemctl restart docker
 ```
 23. 常用容器  
 ```shell

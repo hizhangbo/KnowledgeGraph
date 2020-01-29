@@ -39,9 +39,15 @@
   - EventLoopGroup # 事件循环组
     - TerminationListener
     - EventExecutor
+      - EventExecutorChooser # Channel选择绑定EventLoop的方式
+        - PowerOfTwoEventExecutorChooser # 如果executors的个数为2的幂次方则使用，效率更高
+        - GenericEventExecutorChooser # 如果不是2的幂次方，则使用求余取绝对值的普通方式
       - EventLoop
         - SingleThreadEventLoop
           - NioEventLoop
+            - select
+            - processSelectedKeys
+            - runAllTasks
           - ThreadPerTaskExecutor
   - ServerBootstrap # 服务器引导启动与初始化
     - ChannelFactory
@@ -51,6 +57,10 @@
     - ChannelHandler
       - ChannelInboundHandlerAdapter
       - ChannelOutboundHandlerAdapter
+      - HeadContext
+        - 实现ChannelOutboundHandler, ChannelInboundHandler
+      - TailContext
+        - 实现ChannelInboundHandler
   - 编码
     - Protobuf
       - 优势
