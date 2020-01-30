@@ -65,3 +65,16 @@
     - Protobuf
       - 优势
         - 比序列化方式效率高
+  - 内存泄漏检测
+    - ResourceLeakDetector.level # 检测等级
+    - -Dio.netty.leakDetection.level=PARANOID
+  - 线程模型优化
+    - UnorderedThreadPoolEventExecutor # 使业务线程独立
+      - NioEventExecutorGroup 会判断是否绑定同一个channel，如果是则只利用一个线程工作，所以这里使用UnorderedThreadPoolEventExecutor
+  - 吞吐量优化
+    - FlushConsolidationHandler # 延迟批量发送
+      - pipeline.addLast("flushEnhance", new FlushConsolidationHandler(5, true));
+  - 流量整型
+    - ChannelTrafficShapingHandler
+    - GlobalTrafficShapingHandler: share
+    - GlobalChannelTrafficShapingHandler: share
