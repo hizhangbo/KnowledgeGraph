@@ -24,3 +24,38 @@
     - Repeatable Read 可重复读
     - Read Committed 提交后读
     - Read Uncommitted 不提交读
+    
+
+## WebFlux
+ - 相关前提
+   - Reactor 同步非阻塞模式
+   - Proactor 异步非阻塞模式
+   - Observer 观察者模式
+   - Iterator 迭代器模式
+ - Reactive
+   - 定义
+     - 声明式的编程范式，关注于数据流（data streams）和传播变化（propagation of change）
+   - 实现
+     - RxJava: Reactive Extensions
+     - Reactor: Spring WebFlux Reactive 
+     - Flow API: JAVA 9 Flow API
+   - 特点
+     - 响应式（Responsive）
+     - 适应性强（Resilient）
+     - 弹性可伸缩（Elastic）
+     - 消息驱动（Message Driven）
+   - 涉及技术
+     - 数据流：Java 8 `Stream`
+     - 传播变化： Java `Observable/Observer`
+     - 事件： Java `EventObject/EventListener`
+   - 数据结构
+     - 流式 `stream`
+     - 序列 `Sequences`
+     - 事件 `Events`
+   - 设计模式
+     - 扩展模式：观察者 `Observer` -> 推模式：被动获取事件
+     - 对立模式：迭代器 `Iterator` -> 拉模式：主动获取事件
+     - 混合模式：反应堆 `Reactor`,`Proactor`
+     
+     
+     
